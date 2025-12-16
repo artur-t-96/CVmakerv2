@@ -224,40 +224,44 @@ const ENHANCED_EXTRACTION_PROMPT_PL = `${EXTRACTION_PROMPT_PL}
 
 TRYB AI ENHANCE - DODATKOWE INSTRUKCJE:
 
+WAŻNE: Zastosuj poniższe ulepszenia do WSZYSTKICH pozycji w doświadczeniu, WŁĄCZNIE z aktualną/bieżącą pozycją (gdzie data końcowa to "currently" lub brak daty końcowej). NIE pomijaj żadnej pozycji!
+
 1. SMART DEDUCTION obowiązków:
-   - Na podstawie stanowiska, firmy i branży DODAJ typowe obowiązki, które kandydat prawdopodobnie wykonywał ale nie wymienił
+   - Na podstawie stanowiska, firmy i branży DODAJ typowe obowiązki, które kandydat prawdopodobnie wykonywał/wykonuje ale nie wymienił
    - Przykład: "Senior Java Developer w banku" → dodaj: code review, mentoring juniorów, współpraca z analitykami biznesowymi, udział w planowaniu sprintów, dokumentacja techniczna
    - Przykład: "DevOps Engineer" → dodaj: monitoring i alerting, incident management, capacity planning, security hardening
-   - Dodaj 2-4 dodatkowe obowiązki per pozycja, sformułowane naturalnie
+   - Dodaj 2-4 dodatkowe obowiązki per pozycja (KAŻDA pozycja, także aktualna!), sformułowane naturalnie
    - NIE zaznaczaj które obowiązki są dodane
 
 2. AGRESYWNA DEDUKCJA technologii:
-   - Dedukuj technologie z kontekstu branży, firmy i stanowiska
+   - Dedukuj technologie z kontekstu branży, firmy i stanowiska DLA KAŻDEJ POZYCJI
    - Przykład: "Backend Developer w fintechu" → Java/Kotlin, Spring Boot, PostgreSQL, Kafka, Docker, Kubernetes, AWS
    - Przykład: "Frontend Developer w software house" → React, TypeScript, Redux, Webpack, Jest, CSS-in-JS
    - Przykład: "Data Engineer" → Python, Spark, Airflow, SQL, dbt, Snowflake/BigQuery
    - Dodaj typowy stack technologiczny dla danej roli nawet jeśli nie wymieniony wprost
-   - Dla każdej pozycji minimum 6-10 technologii`
+   - Dla każdej pozycji (WŁĄCZNIE Z AKTUALNĄ) minimum 6-10 technologii`
 
 // Prompt rozszerzony dla AI Enhance (English)
 const ENHANCED_EXTRACTION_PROMPT_EN = `${EXTRACTION_PROMPT_EN}
 
 AI ENHANCE MODE - ADDITIONAL INSTRUCTIONS:
 
+IMPORTANT: Apply the enhancements below to ALL positions in experience, INCLUDING the current/ongoing position (where end date is "currently" or missing). DO NOT skip any position!
+
 1. SMART DEDUCTION of responsibilities:
-   - Based on position, company and industry, ADD typical responsibilities that the candidate probably performed but didn't list
+   - Based on position, company and industry, ADD typical responsibilities that the candidate probably performed/performs but didn't list
    - Example: "Senior Java Developer at a bank" → add: code review, mentoring juniors, collaboration with business analysts, sprint planning participation, technical documentation
    - Example: "DevOps Engineer" → add: monitoring and alerting, incident management, capacity planning, security hardening
-   - Add 2-4 additional responsibilities per position, naturally phrased
+   - Add 2-4 additional responsibilities per position (EVERY position, including current one!), naturally phrased
    - DO NOT mark which responsibilities are added
 
 2. AGGRESSIVE TECHNOLOGY DEDUCTION:
-   - Deduce technologies from industry, company and position context
+   - Deduce technologies from industry, company and position context FOR EVERY POSITION
    - Example: "Backend Developer at fintech" → Java/Kotlin, Spring Boot, PostgreSQL, Kafka, Docker, Kubernetes, AWS
    - Example: "Frontend Developer at software house" → React, TypeScript, Redux, Webpack, Jest, CSS-in-JS
    - Example: "Data Engineer" → Python, Spark, Airflow, SQL, dbt, Snowflake/BigQuery
    - Add typical tech stack for the role even if not explicitly mentioned
-   - Minimum 6-10 technologies per position`
+   - Minimum 6-10 technologies per position (INCLUDING CURRENT ONE)`
 
 // Funkcja do konwersji PDF/DOCX na tekst
 async function extractTextFromFile(filePath: string, fileName: string): Promise<string> {
