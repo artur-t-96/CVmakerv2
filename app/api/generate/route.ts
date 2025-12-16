@@ -118,7 +118,7 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
   ],
   "experience": [
     {
-      "dates": "MM.YYYY – MM.YYYY lub obecnie",
+      "dates": "MM.YYYY – currently",
       "company": "Nazwa firmy",
       "industry": "Branża firmy (np. IT, Fintech, E-commerce, Telekomunikacja, Bankowość, Retail, Produkcja)",
       "position": "Stanowisko",
@@ -187,7 +187,7 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
   ],
   "experience": [
     {
-      "dates": "MM.YYYY – MM.YYYY or present",
+      "dates": "MM.YYYY – MM.YYYY or currently",
       "company": "Company name",
       "industry": "Company industry (e.g., IT, Fintech, E-commerce, Telecommunications, Banking, Retail, Manufacturing)",
       "position": "Position",
