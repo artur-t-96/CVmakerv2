@@ -373,25 +373,25 @@ def create_cv_from_template(candidate_data, template_path, output_path):
         run1.font.name = 'Montserrat'
         run1.font.color.rgb = COLOR_TEXT
         run1.font.size = Pt(10)
-        run1.font.bold = True
         run2 = para.add_run(job['company'])
         run2.font.name = 'Montserrat'
         run2.font.color.rgb = COLOR_TEXT
         run2.font.size = Pt(10)
+        run2.font.bold = True
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
-        
+
         # Stanowisko
         para = doc.add_paragraph()
         run1 = para.add_run(t['position'] + ' ')
         run1.font.name = 'Montserrat'
         run1.font.color.rgb = COLOR_TEXT
         run1.font.size = Pt(10)
-        run1.font.bold = True
         run2 = para.add_run(job['position'])
         run2.font.name = 'Montserrat'
         run2.font.color.rgb = COLOR_TEXT
         run2.font.size = Pt(10)
+        run2.font.bold = True
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(0)
         
