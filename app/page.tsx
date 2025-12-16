@@ -563,22 +563,18 @@ export default function Home() {
                 Skip
               </button>
               <button
-                onClick={() => setShowChampionModal(false)}
+                onClick={() => {
+                  if (!championProfile) {
+                    document.getElementById('champion-upload')?.click()
+                  } else {
+                    setShowChampionModal(false)
+                  }
+                }}
                 className="py-3 px-4 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-red-500/25 transition-all"
               >
-                {championProfile ? 'Continue' : 'Skip'}
+                {championProfile ? 'Continue' : 'Upload'}
               </button>
             </div>
-            
-            <label className="flex items-center justify-center gap-2 mt-4 text-xs text-white/40 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={skipChampion}
-                onChange={(e) => setSkipChampion(e.target.checked)}
-                className="rounded border-white/30 bg-transparent text-red-500 focus:ring-red-500/50"
-              />
-              Don&apos;t show this again
-            </label>
           </div>
         </div>
       )}
