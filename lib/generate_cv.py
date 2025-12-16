@@ -153,18 +153,36 @@ def add_bullet_point(doc, text):
 def create_cv_from_template(candidate_data, template_path, output_path):
     """
     Tworzy CV rozpoczynając OD SZABLONU.
-    
+
     Args:
         candidate_data: Dict z danymi kandydata (zawiera pole 'language': 'pl' lub 'en')
         template_path: Ścieżka do szablon_firmowy.docx
         output_path: Gdzie zapisać wynikowe CV
     """
-    
+
     # Pobierz język z danych kandydata (domyślnie 'pl')
     language = candidate_data.get('language', 'pl')
+    blind_cv = candidate_data.get('blind_cv', False)
     t = TRANSLATIONS.get(language, TRANSLATIONS['pl'])
-    
-    print(f"Generuję CV dla {candidate_data['name']} (język: {language})...")
+
+    # Anonimizacja dla Blind CV
+    if blind_cv:
+        if language == 'en':
+            candidate_data['name'] = 'Candidate'
+            candidate_data['first_name'] = 'Candidate'
+        else:
+            candidate_data['name'] = 'Kandydat'
+            candidate_data['first_name'] = 'Kandydat'
+
+        # Anonimizuj nazwy firm w doświadczeniu
+        for job in candidate_data.get('experience', []):
+            industry = job.get('industry', 'IT')
+            if language == 'en':
+                job['company'] = f'Company from {industry} industry'
+            else:
+                job['company'] = f'Firma z branży {industry}'
+
+    print(f"Generuję CV dla {candidate_data['name']} (język: {language}, blind: {blind_cv})...")
     
     # KROK 1: Skopiuj szablon jako bazę
     temp_cv = '/tmp/cv_base.docx'
@@ -197,7 +215,6 @@ def create_cv_from_template(candidate_data, template_path, output_path):
     add_horizontal_line(doc)
     
     # === DLACZEGO [IMIĘ] / WHY [NAME] ===
-    doc.add_paragraph()
     para = doc.add_paragraph()
     run = para.add_run(f"{t['why']} {candidate_data['first_name'].upper()}")
     run.font.name = 'Montserrat SemiBold'
@@ -223,13 +240,9 @@ def create_cv_from_template(candidate_data, template_path, output_path):
     tbl = table._tbl
     tblPr = tbl.tblPr if tbl.tblPr is not None else OxmlElement('w:tblPr')
 
-    # Obramowanie tabeli - tylko wewnętrzne linie
+    # Obramowanie tabeli - wszystkie krawędzie
     tblBorders = OxmlElement('w:tblBorders')
-    for border_name in ['top', 'left', 'bottom', 'right']:
-        border = OxmlElement(f'w:{border_name}')
-        border.set(qn('w:val'), 'nil')
-        tblBorders.append(border)
-    for border_name in ['insideH', 'insideV']:
+    for border_name in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
         border = OxmlElement(f'w:{border_name}')
         border.set(qn('w:val'), 'single')
         border.set(qn('w:sz'), '4')

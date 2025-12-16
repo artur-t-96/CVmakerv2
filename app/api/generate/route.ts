@@ -98,7 +98,7 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
   ],
   "education": [
     {
-      "dates": "YYYY lub MM/YYYY – MM/YYYY",
+      "dates": "YYYY lub MM.YYYY – MM.YYYY",
       "institution": "Nazwa uczelni",
       "degree": "Kierunek i stopień",
       "location": "Miasto, Kraj"
@@ -118,8 +118,9 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
   ],
   "experience": [
     {
-      "dates": "MM/YYYY – MM/YYYY lub obecnie",
+      "dates": "MM.YYYY – MM.YYYY lub obecnie",
       "company": "Nazwa firmy",
+      "industry": "Branża firmy (np. IT, Fintech, E-commerce, Telekomunikacja, Bankowość, Retail, Produkcja)",
       "position": "Stanowisko",
       "responsibilities": [
         "Lista obowiązków i osiągnięć"
@@ -133,7 +134,7 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
 
 KRYTYCZNE ZASADY:
 1. Zwróć TYLKO poprawny JSON, bez żadnego dodatkowego tekstu
-2. Format dat: MM/YYYY dla zakresów, YYYY dla pojedynczych lat
+2. Format dat: MM.YYYY dla zakresów (np. 03.2020 – 11.2023), YYYY dla pojedynczych lat
 3. Sekcja "why_points" musi być marketingowa i atrakcyjna
 4. Wyodrębnij minimum 5 kategorii umiejętności
 5. Jeśli brak certyfikatów, dodaj przynajmniej szkolenia/kursy
@@ -166,7 +167,7 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
   ],
   "education": [
     {
-      "dates": "YYYY or MM/YYYY – MM/YYYY",
+      "dates": "YYYY or MM.YYYY – MM.YYYY",
       "institution": "University name",
       "degree": "Field of study and degree",
       "location": "City, Country"
@@ -186,8 +187,9 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
   ],
   "experience": [
     {
-      "dates": "MM/YYYY – MM/YYYY or present",
+      "dates": "MM.YYYY – MM.YYYY or present",
       "company": "Company name",
+      "industry": "Company industry (e.g., IT, Fintech, E-commerce, Telecommunications, Banking, Retail, Manufacturing)",
       "position": "Position",
       "responsibilities": [
         "List of duties and achievements"
@@ -201,7 +203,7 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
 
 CRITICAL RULES:
 1. Return ONLY valid JSON, without any additional text
-2. Date format: MM/YYYY for ranges, YYYY for single years
+2. Date format: MM.YYYY for ranges (e.g., 03.2020 – 11.2023), YYYY for single years
 3. The "why_points" section must be marketing-oriented and attractive
 4. Extract at least 5 skill categories
 5. If no certifications, add at least training/courses
@@ -285,9 +287,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     const language = (formData.get('language') as string) || 'pl'
     const aiEnhance = formData.get('aiEnhance') === 'true'
+    const blindCV = formData.get('blindCV') === 'true'
     const championFile = formData.get('championProfile') as File | null
 
-    console.log(`[${requestId}] Language: ${language}, AI Enhance: ${aiEnhance}, Champion Profile: ${championFile ? 'tak' : 'nie'}`)
+    console.log(`[${requestId}] Language: ${language}, AI Enhance: ${aiEnhance}, Blind CV: ${blindCV}, Champion Profile: ${championFile ? 'tak' : 'nie'}`)
 
     if (!file) {
       return NextResponse.json(
@@ -410,8 +413,9 @@ Format why_points gdy jest Champion:
       
       const candidateData = JSON.parse(cleanedResponse)
 
-      // Dodaj język do danych kandydata
+      // Dodaj język i opcje do danych kandydata
       candidateData.language = language
+      candidateData.blind_cv = blindCV
 
       console.log('Generuję DOCX...')
       const sanitizedName = candidateData.name

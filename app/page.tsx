@@ -15,6 +15,7 @@ export default function Home() {
   const [processedCVs, setProcessedCVs] = useState<ProcessedCV[]>([])
   const [language, setLanguage] = useState<'pl' | 'en' | null>(null)
   const [aiEnhance, setAiEnhance] = useState(false)
+  const [blindCV, setBlindCV] = useState(false)
   const [championProfile, setChampionProfile] = useState<File | null>(null)
   const [showChampionModal, setShowChampionModal] = useState(false)
   const [skipChampion, setSkipChampion] = useState(false)
@@ -68,6 +69,7 @@ export default function Home() {
       formData.append('file', file)
       formData.append('language', language || 'pl')
       formData.append('aiEnhance', aiEnhance.toString())
+      formData.append('blindCV', blindCV.toString())
       if (championProfile) {
         formData.append('championProfile', championProfile)
       }
@@ -135,6 +137,7 @@ export default function Home() {
     setLanguage(null)
     setChampionProfile(null)
     setAiEnhance(false)
+    setBlindCV(false)
   }
 
   return (
@@ -324,6 +327,29 @@ export default function Home() {
                   >
                     <div className={`w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 ${
                       aiEnhance ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Blind CV Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-500/20 to-slate-500/20 flex items-center justify-center">
+                      <span className="text-lg">👤</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/90">Blind CV</p>
+                      <p className="text-xs text-white/40">Anonymize name & company names</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setBlindCV(!blindCV)}
+                    className={`w-12 h-7 rounded-full transition-all duration-300 ${
+                      blindCV ? 'bg-red-500' : 'bg-white/20'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 ${
+                      blindCV ? 'translate-x-6' : 'translate-x-1'
                     }`} />
                   </button>
                 </div>
