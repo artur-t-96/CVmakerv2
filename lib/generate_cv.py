@@ -126,28 +126,41 @@ def add_section_header(doc, text):
     return para
 
 
-def add_bullet_point(doc, text):
+def add_bullet_point(doc, text, punctuation=''):
     """Dodaje punkt wypunktowany z WŁAŚCIWĄ NUMERACJĄ WORD."""
+    # Usuń istniejącą interpunkcję na końcu i dodaj nową
+    text = text.rstrip('.,;')
+    text = text + punctuation
+
     para = doc.add_paragraph()
     run = para.add_run(text)
     run.font.name = 'Montserrat'
     run.font.color.rgb = COLOR_TEXT
     run.font.size = Pt(10)
-    
+
     pPr = para._element.get_or_add_pPr()
     numPr = etree.Element(f'{{{NS_W}}}numPr')
-    
+
     ilvl = etree.SubElement(numPr, f'{{{NS_W}}}ilvl')
     ilvl.set(f'{{{NS_W}}}val', '0')
-    
+
     numId = etree.SubElement(numPr, f'{{{NS_W}}}numId')
     numId.set(f'{{{NS_W}}}val', '1')
-    
+
     pPr.insert(0, numPr)
-    
+
     para.paragraph_format.space_before = Pt(1)
     para.paragraph_format.space_after = Pt(1)
+    para.paragraph_format.line_spacing = 1.5
     return para
+
+
+def add_bullet_list(doc, items):
+    """Dodaje listę punktowaną z przecinkami i kropką na końcu."""
+    for i, item in enumerate(items):
+        is_last = (i == len(items) - 1)
+        punctuation = '.' if is_last else ','
+        add_bullet_point(doc, item, punctuation)
 
 
 def create_cv_from_template(candidate_data, template_path, output_path):
@@ -224,8 +237,7 @@ def create_cv_from_template(candidate_data, template_path, output_path):
     para.paragraph_format.space_before = Pt(0)
     para.paragraph_format.space_after = Pt(3)
     
-    for point in candidate_data.get('why_points', []):
-        add_bullet_point(doc, point)
+    add_bullet_list(doc, candidate_data.get('why_points', []))
     
     # === EDUKACJA / EDUCATION ===
     add_section_header(doc, t['education'])
@@ -340,15 +352,13 @@ def create_cv_from_template(candidate_data, template_path, output_path):
     
     # === CERTYFIKATY / CERTIFICATIONS ===
     add_section_header(doc, t['certifications'])
-    
-    for cert in candidate_data.get('certifications', []):
-        add_bullet_point(doc, cert)
-    
+
+    add_bullet_list(doc, candidate_data.get('certifications', []))
+
     # === JĘZYKI / LANGUAGES ===
     add_section_header(doc, t['languages'])
-    
-    for lang in candidate_data.get('languages', []):
-        add_bullet_point(doc, lang)
+
+    add_bullet_list(doc, candidate_data.get('languages', []))
     
     # === DOŚWIADCZENIE / EXPERIENCE ===
     add_section_header(doc, t['experience'])
@@ -405,8 +415,7 @@ def create_cv_from_template(candidate_data, template_path, output_path):
         para.paragraph_format.space_before = Pt(0)
         para.paragraph_format.space_after = Pt(1)
         
-        for responsibility in job.get('responsibilities', []):
-            add_bullet_point(doc, responsibility)
+        add_bullet_list(doc, job.get('responsibilities', []))
         
         # Technologie
         if job.get('technologies'):
