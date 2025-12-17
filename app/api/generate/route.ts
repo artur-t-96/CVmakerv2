@@ -94,7 +94,7 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
     "2. Specjalizacja w technologiach: [Top 4-5 technologii]",
     "3. Praktyczne doświadczenie w [kluczowy projekt/osiągnięcie]",
     "4. Znajomość [metodologie/procesy]",
-    "5. [Rozwój: studia/certyfikaty]"
+    "5. [Certyfikaty lub dodatkowe kompetencje]"
   ],
   "education": [
     {
@@ -135,12 +135,17 @@ const EXTRACTION_PROMPT_PL = `Jesteś ekspertem w analizie CV. Przeanalizuj dost
 KRYTYCZNE ZASADY:
 1. Zwróć TYLKO poprawny JSON, bez żadnego dodatkowego tekstu
 2. Format dat: MM.YYYY dla zakresów (np. 03.2020 – 11.2023), YYYY dla pojedynczych lat
-3. Sekcja "why_points" musi być marketingowa i atrakcyjna
+3. Sekcja "why_points" musi być marketingowa i atrakcyjna - NIE używaj edukacji jako argumentu w why_points!
 4. Wyodrębnij minimum 5 kategorii umiejętności
 5. Jeśli brak certyfikatów, dodaj przynajmniej szkolenia/kursy
 6. Minimum 2 języki (zawsze Polski + inne)
 7. Uporządkuj doświadczenie od najnowszego
 8. Używaj polskich znaków (ą, ć, ę, ł, ń, ó, ś, ź, ż)
+
+ZASADY DLA WHY_POINTS:
+- NIGDY nie używaj edukacji/studiów jako argumentu w why_points
+- Skup się TYLKO na: doświadczeniu zawodowym, technologiach, projektach, osiągnięciach, certyfikatach
+- Edukacja jest w osobnej sekcji i nie powinna być powtarzana w why_points
 
 TECHNOLOGIE W DOŚWIADCZENIU:
 - Dla każdej pozycji wyodrębnij technologie, języki programowania, frameworki, narzędzia, bazy danych, platformy chmurowe
@@ -163,7 +168,7 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
     "2. Specialization in technologies: [Top 4-5 technologies]",
     "3. Practical experience in [key project/achievement]",
     "4. Knowledge of [methodologies/processes]",
-    "5. [Development: education/certifications]"
+    "5. [Certifications or additional competencies]"
   ],
   "education": [
     {
@@ -204,12 +209,17 @@ const EXTRACTION_PROMPT_EN = `You are an expert in CV analysis. Analyze the prov
 CRITICAL RULES:
 1. Return ONLY valid JSON, without any additional text
 2. Date format: MM.YYYY for ranges (e.g., 03.2020 – 11.2023), YYYY for single years
-3. The "why_points" section must be marketing-oriented and attractive
+3. The "why_points" section must be marketing-oriented and attractive - NEVER use education as an argument in why_points!
 4. Extract at least 5 skill categories
 5. If no certifications, add at least training/courses
 6. Minimum 2 languages
 7. Sort experience from newest to oldest
 8. Use proper English language
+
+RULES FOR WHY_POINTS:
+- NEVER use education/studies as an argument in why_points
+- Focus ONLY on: work experience, technologies, projects, achievements, certifications
+- Education is in a separate section and should not be repeated in why_points
 
 TECHNOLOGIES IN EXPERIENCE:
 - For each position extract technologies, programming languages, frameworks, tools, databases, cloud platforms
@@ -266,7 +276,7 @@ IMPORTANT: Apply the enhancements below to ALL positions in experience, INCLUDIN
 // Funkcja do konwersji PDF/DOCX na tekst
 async function extractTextFromFile(filePath: string, fileName: string): Promise<string> {
   const ext = path.extname(fileName).toLowerCase()
-  
+
   if (ext === '.pdf') {
     const { stdout } = await execAsync(`pdftotext "${filePath}" -`)
     return stdout
@@ -276,7 +286,7 @@ async function extractTextFromFile(filePath: string, fileName: string): Promise<
     const result = await mammoth.extractRawText({ buffer })
     return result.value
   }
-  
+
   throw new Error('Nieobsługiwany format pliku')
 }
 
@@ -292,9 +302,8 @@ export async function POST(request: NextRequest) {
     const language = (formData.get('language') as string) || 'pl'
     const aiEnhance = formData.get('aiEnhance') === 'true'
     const blindCV = formData.get('blindCV') === 'true'
-    const championFile = formData.get('championProfile') as File | null
 
-    console.log(`[${requestId}] Language: ${language}, AI Enhance: ${aiEnhance}, Blind CV: ${blindCV}, Champion Profile: ${championFile ? 'tak' : 'nie'}`)
+    console.log(`[${requestId}] Language: ${language}, AI Enhance: ${aiEnhance}, Blind CV: ${blindCV}`)
 
     if (!file) {
       return NextResponse.json(
@@ -313,26 +322,6 @@ export async function POST(request: NextRequest) {
     const tempFilePath = path.join(tempDir, `upload_${Date.now()}_${sanitizedFileName}`)
     await fs.writeFile(tempFilePath, buffer)
 
-    let championText = ''
-    let championPath = ''
-    if (championFile) {
-      const championBytes = await championFile.arrayBuffer()
-      const championBuffer = Buffer.from(championBytes)
-      const sanitizedChampionName = championFile.name
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9._-]/g, '_')
-      championPath = path.join(tempDir, `champion_${Date.now()}_${sanitizedChampionName}`)
-      await fs.writeFile(championPath, championBuffer)
-      
-      try {
-        championText = await extractTextFromFile(championPath, championFile.name)
-        console.log(`[${requestId}] Wyekstrahowano Profil Championa: ${championText.length} znaków`)
-      } catch (e) {
-        console.error(`[${requestId}] Błąd ekstrakcji Champion Profile:`, e)
-      }
-    }
-
     try {
       console.log(`[${requestId}] Ekstraktuję tekst z pliku...`)
       const extractionStart = Date.now()
@@ -345,49 +334,6 @@ export async function POST(request: NextRequest) {
         finalPrompt = aiEnhance ? ENHANCED_EXTRACTION_PROMPT_EN : EXTRACTION_PROMPT_EN
       } else {
         finalPrompt = aiEnhance ? ENHANCED_EXTRACTION_PROMPT_PL : EXTRACTION_PROMPT_PL
-      }
-      
-      // Dodaj kontekst Champion Profile jeśli jest
-      if (championText) {
-        const championAddition = language === 'en' ? `
-
-CHAMPION PROFILE - CLIENT REQUIREMENTS:
-${championText}
-
-SPECIAL INSTRUCTIONS FOR "why_points" SECTION (when Champion Profile is provided):
-Instead of generic marketing points, create points that:
-1. MATCH candidate's skills with MUST-HAVE requirements from Champion Profile
-2. Highlight candidate's experience in technologies required by the client
-3. Show how candidate meets expectations from "Technical Requirements" section
-4. Use language of benefits for the CLIENT (not the candidate)
-5. Reference the project context from Champion Profile
-
-Format of why_points when Champion is present:
-- "Meets MUST-HAVE: [technology] - [X] years of experience, including [specific project matching requirements]"
-- "Experience in [industry/domain from profile] - [specific example from candidate's CV]"
-- "NICE-TO-HAVE: [technology] - additional asset exceeding requirements"
-- "Fits the project: [element from CV that matches project description from Champion]"
-- "Ready for [work mode from profile]: [evidence from CV or deduction]"` : `
-
-PROFIL CHAMPIONA - WYMAGANIA KLIENTA:
-${championText}
-
-SPECJALNE INSTRUKCJE DLA SEKCJI "why_points" (gdy jest Profil Championa):
-Zamiast ogólnych punktów marketingowych, stwórz punkty które:
-1. MATCHUJĄ umiejętności kandydata z MUST-HAVE wymaganiami z Profilu Championa
-2. Podkreślają doświadczenie kandydata w technologiach wymaganych przez klienta
-3. Pokazują jak kandydat spełnia oczekiwania z sekcji "Wymagania techniczne"
-4. Używają języka korzyści dla KLIENTA (nie kandydata)
-5. Odnoszą się do kontekstu projektu z Profilu Championa
-
-Format why_points gdy jest Champion:
-- "Spełnia MUST-HAVE: [technologia] - [X] lat doświadczenia, w tym [konkretny projekt pasujący do wymagań]"
-- "Doświadczenie w [branża/domena z profilu] - [konkretny przykład z CV kandydata]"
-- "NICE-TO-HAVE: [technologia] - dodatkowy atut wykraczający poza wymagania"
-- "Pasuje do projektu: [element z CV który matchuje opis projektu z Championa]"
-- "Gotowy do [tryb pracy z profilu]: [dowód z CV lub dedukcja]"`
-        
-        finalPrompt += championAddition
       }
 
       console.log(`[${requestId}] Wysyłam do Claude API...`)
@@ -406,15 +352,15 @@ Format why_points gdy jest Champion:
         requestId
       )
 
-      const responseText = message.content[0].type === 'text' 
-        ? message.content[0].text 
+      const responseText = message.content[0].type === 'text'
+        ? message.content[0].text
         : ''
-      
+
       console.log('Odpowiedź Claude:', responseText)
-      
+
       let cleanedResponse = responseText.trim()
       cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-      
+
       const candidateData = JSON.parse(cleanedResponse)
 
       // Dodaj język i opcje do danych kandydata
@@ -430,7 +376,7 @@ Format why_points gdy jest Champion:
       const outputPath = path.join(tempDir, `CV_${sanitizedName}.docx`)
       const templatePath = path.join(process.cwd(), 'public', 'szablon_firmowy.docx')
       const pythonScriptPath = path.join(process.cwd(), 'lib', 'generate_cv.py')
-      
+
       const dataPath = path.join(tempDir, `data_${Date.now()}.json`)
       await fs.writeFile(dataPath, JSON.stringify(candidateData, null, 2), { encoding: 'utf-8' })
 
@@ -443,9 +389,6 @@ Format why_points gdy jest Champion:
       await fs.unlink(tempFilePath)
       await fs.unlink(dataPath)
       await fs.unlink(outputPath)
-      if (championPath) {
-        try { await fs.unlink(championPath) } catch {}
-      }
 
       const totalDuration = Date.now() - requestStartTime
       console.log(`[${requestId}] Request zakończony sukcesem. Całkowity czas: ${totalDuration}ms`)
@@ -463,9 +406,6 @@ Format why_points gdy jest Champion:
       try {
         await fs.unlink(tempFilePath)
       } catch {}
-      if (championPath) {
-        try { await fs.unlink(championPath) } catch {}
-      }
       throw error
     }
 
