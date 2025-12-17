@@ -215,21 +215,27 @@ def create_cv_from_template(candidate_data, template_path, output_path):
     
     # === NAGŁÓWEK GŁÓWNY ===
     header_para = doc.add_paragraph()
-    header_run = header_para.add_run(
-        f"{candidate_data['position']} – {candidate_data['name']}"
-    )
+    if blind_cv:
+        header_text = candidate_data['position']
+    else:
+        header_text = f"{candidate_data['position']} – {candidate_data['name']}"
+    header_run = header_para.add_run(header_text)
     header_run.font.name = 'Montserrat SemiBold'
     header_run.font.color.rgb = COLOR_HEADER
     header_run.font.bold = False
     header_run.font.size = Pt(24)
     header_para.paragraph_format.space_after = Pt(6)
     header_para.paragraph_format.space_before = Pt(2)
-    
+
     add_horizontal_line(doc)
-    
-    # === DLACZEGO [IMIĘ] / WHY [NAME] ===
+
+    # === DLACZEGO [IMIĘ] / WHY [NAME] / PODSUMOWANIE ===
     para = doc.add_paragraph()
-    run = para.add_run(f"{t['why']} {candidate_data['first_name'].upper()}")
+    if blind_cv:
+        why_title = 'Summary' if language == 'en' else 'Podsumowanie'
+    else:
+        why_title = f"{t['why']} {candidate_data['first_name'].upper()}"
+    run = para.add_run(why_title)
     run.font.name = 'Montserrat SemiBold'
     run.font.color.rgb = COLOR_HEADER
     run.font.bold = False
