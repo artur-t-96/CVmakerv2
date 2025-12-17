@@ -26,7 +26,7 @@ TRANSLATIONS = {
         'why': 'DLACZEGO',
         'education': 'EDUKACJA',
         'dates': 'Daty',
-        'education_header': 'Edukacja',
+        'education_header': 'Nazwa uczelni/kierunek',
         'skills': 'UMIEJĘTNOŚCI',
         'certifications': 'CERTYFIKATY',
         'languages': 'JĘZYKI',
@@ -58,7 +58,7 @@ TRANSLATIONS = {
         'why': 'WHY',
         'education': 'EDUCATION',
         'dates': 'Dates',
-        'education_header': 'Education',
+        'education_header': 'Names of University/degrees',
         'skills': 'SKILLS',
         'certifications': 'CERTIFICATIONS',
         'languages': 'LANGUAGES',
@@ -305,8 +305,31 @@ def create_cv_from_template(candidate_data, template_path, output_path):
 
     for i, edu in enumerate(candidate_data['education'], start=1):
         row_cells = table.rows[i].cells
+
+        # Dates column
         row_cells[0].text = edu['dates']
-        row_cells[1].text = f"{edu['institution']}\n{edu['degree']}\n{edu['location']}"
+
+        # Education details column - bold institution, regular degree, no location
+        # Clear the default paragraph and add formatted content
+        row_cells[1].text = ''
+        para = row_cells[1].paragraphs[0]
+
+        # Bold institution name
+        run_institution = para.add_run(edu['institution'])
+        run_institution.font.name = 'Montserrat'
+        run_institution.font.bold = True
+        run_institution.font.color.rgb = COLOR_TEXT
+        run_institution.font.size = Pt(9)
+
+        # Line break
+        para.add_run('\n')
+
+        # Regular degree (not bold)
+        run_degree = para.add_run(edu['degree'])
+        run_degree.font.name = 'Montserrat'
+        run_degree.font.bold = False
+        run_degree.font.color.rgb = COLOR_TEXT
+        run_degree.font.size = Pt(9)
 
         # Alternatywne kolorowanie wierszy (zebra striping) - delikatny szary
         if i % 2 == 0:
@@ -321,10 +344,18 @@ def create_cv_from_template(candidate_data, template_path, output_path):
             for paragraph in cell.paragraphs:
                 paragraph.paragraph_format.space_before = Pt(6)
                 paragraph.paragraph_format.space_after = Pt(6)
+                paragraph.paragraph_format.line_spacing = 1.5
                 for run in paragraph.runs:
                     run.font.name = 'Montserrat'
                     run.font.color.rgb = COLOR_TEXT
                     run.font.size = Pt(9)
+
+        # Apply formatting for dates column
+        for para in row_cells[0].paragraphs:
+            for run in para.runs:
+                run.font.name = 'Montserrat'
+                run.font.color.rgb = COLOR_TEXT
+                run.font.size = Pt(9)
     
     doc.add_paragraph()
     
