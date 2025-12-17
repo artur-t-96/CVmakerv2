@@ -15,18 +15,13 @@ export default function Home() {
   const [processedCVs, setProcessedCVs] = useState<ProcessedCV[]>([])
   const [language, setLanguage] = useState<'pl' | 'en' | null>(null)
   const [aiEnhance, setAiEnhance] = useState(false)
-  const [championProfile, setChampionProfile] = useState<File | null>(null)
-  const [showChampionModal, setShowChampionModal] = useState(false)
-  const [skipChampion, setSkipChampion] = useState(false)
+  const [blindCV, setBlindCV] = useState(false)
   const [dragActive, setDragActive] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files)
       setFiles(prev => [...prev, ...newFiles])
-      if (newFiles.length > 0 && !skipChampion) {
-        setShowChampionModal(true)
-      }
     }
   }
 
@@ -36,9 +31,6 @@ export default function Home() {
     if (e.dataTransfer.files) {
       const newFiles = Array.from(e.dataTransfer.files)
       setFiles(prev => [...prev, ...newFiles])
-      if (newFiles.length > 0 && !skipChampion) {
-        setShowChampionModal(true)
-      }
     }
   }
 
@@ -68,9 +60,7 @@ export default function Home() {
       formData.append('file', file)
       formData.append('language', language || 'pl')
       formData.append('aiEnhance', aiEnhance.toString())
-      if (championProfile) {
-        formData.append('championProfile', championProfile)
-      }
+      formData.append('blindCV', blindCV.toString())
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -84,7 +74,7 @@ export default function Home() {
 
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
-      
+
       return {
         name: file.name,
         status: 'success',
@@ -133,8 +123,8 @@ export default function Home() {
     setFiles([])
     setProcessedCVs([])
     setLanguage(null)
-    setChampionProfile(null)
     setAiEnhance(false)
+    setBlindCV(false)
   }
 
   return (
@@ -189,14 +179,14 @@ export default function Home() {
                   </button>
                 )}
               </div>
-              
+
               <div
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
-                  dragActive 
-                    ? 'border-red-500 bg-red-500/10' 
+                  dragActive
+                    ? 'border-red-500 bg-red-500/10'
                     : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                 }`}
               >
@@ -304,7 +294,7 @@ export default function Home() {
             {files.length > 0 && language && (
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
                 <h2 className="text-lg font-semibold text-white/90 mb-4">Options</h2>
-                
+
                 {/* AI Enhance Toggle */}
                 <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl mb-3">
                   <div className="flex items-center gap-3">
@@ -328,46 +318,28 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Champion Profile */}
-                {championProfile ? (
-                  <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-white/90">Champion Profile</p>
-                        <p className="text-xs text-green-400">{championProfile.name}</p>
-                      </div>
+                {/* Blind CV Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-500/20 to-slate-500/20 flex items-center justify-center">
+                      <span className="text-lg">👤</span>
                     </div>
-                    <button
-                      onClick={() => setChampionProfile(null)}
-                      className="text-xs text-white/40 hover:text-red-400 transition-colors"
-                    >
-                      Remove
-                    </button>
+                    <div>
+                      <p className="text-sm font-medium text-white/90">Blind CV</p>
+                      <p className="text-xs text-white/40">Anonymize name & company names</p>
+                    </div>
                   </div>
-                ) : (
                   <button
-                    onClick={() => setShowChampionModal(true)}
-                    className="w-full flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+                    onClick={() => setBlindCV(!blindCV)}
+                    className={`w-12 h-7 rounded-full transition-all duration-300 ${
+                      blindCV ? 'bg-red-500' : 'bg-white/20'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                        <span className="text-lg">📋</span>
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-white/90">Champion Profile</p>
-                        <p className="text-xs text-white/40">Match CV to client requirements</p>
-                      </div>
-                    </div>
-                    <svg className="w-5 h-5 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 ${
+                      blindCV ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
                   </button>
-                )}
+                </div>
               </div>
             )}
 
@@ -465,7 +437,7 @@ export default function Home() {
                             {cv.status === 'success' && <p className="text-xs text-green-400">Ready to download</p>}
                           </div>
                         </div>
-                        
+
                         {cv.downloadUrl && (
                           <a
                             href={cv.downloadUrl}
@@ -499,89 +471,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* Champion Profile Modal */}
-      {showChampionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowChampionModal(false)} />
-          <div className="relative bg-[#12121a] rounded-2xl border border-white/10 p-8 max-w-md w-full shadow-2xl">
-            <button
-              onClick={() => setShowChampionModal(false)}
-              className="absolute top-4 right-4 p-2 text-white/40 hover:text-white transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                <span className="text-3xl">📋</span>
-              </div>
-              <h3 className="text-xl font-semibold text-white/90">Champion Profile</h3>
-              <p className="text-sm text-white/50 mt-2">
-                Add a Champion Profile to match the &quot;WHY&quot; section to client requirements
-              </p>
-            </div>
-            
-            <div
-              className="border-2 border-dashed border-white/20 rounded-xl p-6 text-center hover:border-white/40 hover:bg-white/5 transition-all cursor-pointer mb-6"
-              onClick={() => document.getElementById('champion-upload')?.click()}
-            >
-              <input
-                type="file"
-                accept=".docx,.pdf"
-                onChange={(e) => setChampionProfile(e.target.files?.[0] || null)}
-                className="hidden"
-                id="champion-upload"
-              />
-              {championProfile ? (
-                <div className="text-green-400">
-                  <svg className="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-medium">{championProfile.name}</span>
-                </div>
-              ) : (
-                <div className="text-white/50">
-                  <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span>Click to select file (DOCX, PDF)</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  setChampionProfile(null)
-                  setShowChampionModal(false)
-                }}
-                className="py-3 px-4 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
-              >
-                Skip
-              </button>
-              <button
-                onClick={() => setShowChampionModal(false)}
-                className="py-3 px-4 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-red-500/25 transition-all"
-              >
-                {championProfile ? 'Continue' : 'Skip'}
-              </button>
-            </div>
-            
-            <label className="flex items-center justify-center gap-2 mt-4 text-xs text-white/40 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={skipChampion}
-                onChange={(e) => setSkipChampion(e.target.checked)}
-                className="rounded border-white/30 bg-transparent text-red-500 focus:ring-red-500/50"
-              />
-              Don&apos;t show this again
-            </label>
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 mt-12">
